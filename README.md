@@ -12,7 +12,7 @@ As of nov. 2018 OptimiR has been only used (successfuly) in a GNU/Linux environm
 
 You can install OptimiR on your system using the following:
 ```
-python setup.py
+python setup.py install
 ```
 If you need to install locally, you can use the `--prefix` parameter.
 
