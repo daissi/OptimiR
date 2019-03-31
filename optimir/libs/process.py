@@ -100,7 +100,7 @@ def process(args):
             print("WARNING : Sample provided {} does not match any genotyped sample in provided vcf file".format(sample_name))
             GENO_AVAILABLE = False
         lp_time = time.time()
-        fun_str_progress([VCF_AVAILABLE, GENO_AVAILABLE, lp_time - start], "lib_prep", VERBOSE)
+        fun_str_progress([VCF_AVAILABLE, GENO_AVAILABLE, round(lp_time - start, 2)], "lib_prep", VERBOSE)
         ##############################
         # PRE ALIGNMENT PROCESS : Adapter trimming / Size selection + Read collapsing
         tmpdir_trim = tmpdir + '/0_Trimming'
@@ -108,12 +108,12 @@ def process(args):
             subprocess.call('mkdir -p {}'.format(tmpdir_trim), shell=True)
             trimming(FASTQ, sample_name, tmpdir_trim, CUTADAPT, ADAPT3, ADAPT5, READMIN, READMAX, BQTHRESH)
         trimming_time = time.time()
-        fun_str_progress([trimming_time - lp_time], "trim", VERBOSE)
+        fun_str_progress([round(trimming_time - lp_time, 2)], "trim", VERBOSE)
         tmpdir_collapsed = tmpdir + '/1_Collapsing'
         subprocess.call('mkdir -p {}'.format(tmpdir_collapsed), shell=True)
         collapse_table, collapse_report = collapsing(sample_name, tmpdir_collapsed, tmpdir_trim)
         collapsing_time = time.time()
-        fun_str_progress([collapsing_time - trimming_time], "collaps", VERBOSE)
+        fun_str_progress([round(collapsing_time - trimming_time, 2)], "collaps", VERBOSE)
         ##############################
         # ALIGNMENT : local mode on index_path library
         tmpdir_mapping = tmpdir + '/2_Mapping'
@@ -121,7 +121,7 @@ def process(args):
         fastq_in = '{}/{}.clpsd.fq'.format(tmpdir_collapsed, sample_name)
         mapping(tmpdir_mapping, fastq_in, sample_name, BOWTIE2, SEEDLEN, index_path, SAMTOOLS)
         mapping_time = time.time()
-        fun_str_progress([mapping_time - collapsing_time], "mapping", VERBOSE)
+        fun_str_progress([round(mapping_time - collapsing_time, 2)], "mapping", VERBOSE)
         ##############################
         # POST ALIGNMENT PROCESS : Read Annotation + Genotype Consistance + Alignment Scoring + Abundances generation
         tmpdir_postProcess = tmpdir + "/3_PostProcess"
@@ -131,11 +131,11 @@ def process(args):
         sourceDB = MATURES.split('/')[-1].split('.')[0]
         post_process_main(tmpdir_mapping, tmpdir_postProcess, dir_results, collapse_table, sample_name, WEIGHT5, SCORE_THRESHOLD, INCONSISTENT_THRESHOLD, d_OptimiR_pickle_path, VCF_AVAILABLE, GENO_AVAILABLE, ANNOT_FILES, VERBOSE, WRITE_GFF, WRITE_VCF, sourceDB)
         pp_time = time.time()
-        fun_str_progress([pp_time - mapping_time], "postproc", VERBOSE)
+        fun_str_progress([round(pp_time - mapping_time, 2)], "postproc", VERBOSE)
         end = time.time()
         if RMTEMP:
             subprocess.call("rm -r {}".format(tmpdir), shell=True)
-        fun_str_progress([OUTDIR + "/OptimiR_Results/", end - start], "footer", VERBOSE)
+        fun_str_progress([OUTDIR + "/OptimiR_Results/", round(end - start, 2)], "footer", VERBOSE)
     except Except_OS_Pipe as e:
         print('Error with system call: {}\nCheck that path to Bowtie2, Cutadapt, Samtools are well defined.\n'.format(e))
         exit(3)

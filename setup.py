@@ -3,6 +3,8 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+
+    
 setuptools.setup(
     name="OptimiR",
     version="1.0",
@@ -13,6 +15,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url='https://github.com/FlorianThibord/OptimiR',
     packages=setuptools.find_packages(),
+    include_package_data=True,
     classifiers=[
         "Programming Language :: Python",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -22,9 +25,9 @@ setuptools.setup(
         'pysam',
         'biopython'
     ],
-#    entry_points={
-#        'console_scripts': [
-#            'OPTIMIR = optimir.main:main'
-#        ],
-#    }
+    entry_points={
+        'console_scripts': ['optimir = optimir.command_line:main'],
+    }
 )
+
+

@@ -156,7 +156,7 @@ def print_gff(path_dir):
             sample_name = lines[2].split('\n')[0].split(': ')[1]
             samples.append(sample_name)
             for l in lines[4:]:
-                elts = l.split('\n')[0].split('\t')
+                elts = l.split(';\n')[0].split('\t')
                 attributes = elts[-1].split(';')
                 d_attr = {}
                 d_attr["line"] = "\t".join(elts[:8])
@@ -171,7 +171,7 @@ def print_gff(path_dir):
                         if entry_id not in d_expressions:
                             d_expressions[entry_id] = {}
                         d_expressions[entry_id][sample_name] = d_attr[attr]
-                    elif attr == "Expression_OptimiR":
+                    elif attr == "expression_OptimiR":
                         if entry_id not in d_expressions_opt:
                             d_expressions_opt[entry_id] = {}
                         d_expressions_opt[entry_id][sample_name] = d_attr[attr]
@@ -185,7 +185,7 @@ def print_gff(path_dir):
         keylist = sorted(d)
         for key in keylist:
             entry = d[key]
-            attr_list = ["UID", "Read","Parent","Name","Variant","Change","Cigar","Alias","Expression","Expression_OptimiR","Filter","Hits"]
+            attr_list = ["UID", "Read","Parent","Name","Variant","Change","Cigar","Alias","Expression","expression_OptimiR","Filter","Hits"]
             final_attr = []
             for attr in attr_list:
                 if attr == "Expression":
@@ -196,21 +196,21 @@ def print_gff(path_dir):
                         except KeyError:
                             expr_list.append("0")
                     final_attr.append("Expression={}".format(",".join(expr_list)))
-                elif attr == "Expression_OptimiR":
+                elif attr == "expression_OptimiR":
                     expr_list = []
                     for sample_name in samples:
                         try:
                             expr_list.append(d_expressions_opt[key][sample_name])
                         except KeyError:
                             expr_list.append("0.0")
-                    final_attr.append("Expression_OptimiR={}".format(",".join(expr_list)))
+                    final_attr.append("expression_OptimiR={}".format(",".join(expr_list)))
                 else:
                     try:
                         value = entry[attr]
                         final_attr.append("{}={}".format(attr,value))
                     except KeyError:
                         pass
-            line = entry["line"] + "\t" + ";".join(final_attr) + "\n"
+            line = entry["line"] + "\t" + ";".join(final_attr) + ";\n"
             out.write(line)
     return d_expressions
 
@@ -300,7 +300,6 @@ def summarize(args):
     print('#  OPTIMIR: Summary tables  #')
     print('#############################')
     path = args.DIR
-    start = time.time()
     print_tables(path)
     print("OptimiR summary tables are available.")
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Florian THIBORD : florian.thibord@inserm.fr
 # (30/11/16)
 #############################################
 ##         OptimiR
@@ -8,15 +7,13 @@
 #############################################
 
 ## Personal libraries
-if __name__ == "__main__":
-    from essentials import *
-else:
-    from optimir.libs.essentials import *
+from optimir.libs.essentials import *
 
 ## Other libraries
 import pickle
 import subprocess
 import os, sys, subprocess
+import time
 
 ###########################################################
 ## Functions definitions 
@@ -280,34 +277,27 @@ def prepare_library(BOWTIE2_BUILD, VCF, MATURES, HAIRPINS, GFF3, out_directory, 
         make_index(BOWTIE2_BUILD, index_path, fasta_file)
 
 ## Main Standalone
-if __name__ == "__main__":
-    import time
-    from argparse import ArgumentParser
+def library_preparation(args):
+    print('\n##################################')
+    print('#  OPTIMIR: Library Preparation  #')
+    print('##################################')
 
     header = "Library preparation : \nStart process... Depending on the number of variants provided, the preparation can take a few seconds to several minutes..."
     footer = "Library built!"
 
     print(header)
-
-    parser = ArgumentParser(description = "Script to prepare small RNA alignment library sequences that integrates genetic variants")
-    parser.add_argument("-v", "--vcf", dest = "VCF", default = None, required = False, help = "Full path of the input VCF file.")
-    parser.add_argument("-m", "--matures_fa", dest = "MATURES", default = None, required = True, help = "Full path of the input mature sequences fasta file.")
-    parser.add_argument("-p", "--hairpins_fa", dest = "HAIRPINS", default = None, required = True, help = "Full path of the input hairpin sequences fasta file.")
-    parser.add_argument("-g", "--gff3", dest = "GFF3", default = None, required = True, help = "Full path of the input gff3 coordinates file.")
-    parser.add_argument("-o", "--out", dest = "OUT_DIR", default = "./OptimiR_lib/", required = False, help = "output directory")
-    parser.add_argument("-b", "--bowtie2_build", dest = "BOWTIE2_BUILD", default = "bowtie2-build", required = False, help = "path to bowtie2-build")
     
     ## Assign arguments to global variables
-    args = parser.parse_args()
     VCF = args.VCF
     MATURES = args.MATURES
     HAIRPINS = args.HAIRPINS
     GFF3 = args.GFF3
-    out_directory = args.OUT_DIR
+    OUTDIR = args.OUTDIR
     BOWTIE2_BUILD = args.BOWTIE2_BUILD
 
-    if not(out_directory[-1] == '/'):
-        out_directory += "/"
+    if OUTDIR[-1] == "/":
+        OUTDIR = OUTDIR[:-1]
+    out_directory = os.path.abspath(OUTDIR) + "/OptimiR_lib/"
     subprocess.call("mkdir -p " + out_directory, shell=True)
     # Create directory for OptimiR fasta library
     fasta_dir =  out_directory + "fasta/"

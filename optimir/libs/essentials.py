@@ -1,5 +1,5 @@
+#!/usr/bin/env python
 #-*- coding: utf-8 -*-
-# Florian THIBORD : florian.thibord@inserm.fr
 # (30/11/16)
 ########################################################
 #                 OptimiR essentials                   #
@@ -13,12 +13,13 @@ import re
 from copy import deepcopy
 from itertools import combinations
 import hashlib
+import subprocess
 
 ###########################################################
 ## Classes definition : Coordinates, Variant, Sequence
 ###########################################################
 
-## Compatible with miRBase and miRCarta gff3
+## Compatible with miRBase and miRCarta gff3 (todo: mirgenedb)
 class Coordinates:
     """ Coordinates fields are defined as:
     - chromosome : str
@@ -368,15 +369,15 @@ def fun_str_progress(infos_list, index, verbose=True):
 	      "##       OPTIMIR       ##\n" +
 	      "#########################\n\n" +
 	      "Starting workflow for sample {}\n > Starting Library preparation...")
-    footer = "\nOptimiR Run Completed.\nResults are available in {}\nTotal time: {}\n\n"
+    footer = "\nOptimiR Run Completed.\nResults are available in {}\nTotal time: {}s\n\n"
     
     str_dict = {"header": header,
                 "footer": footer,
-                "lib_prep": "   Library prepared! VCF available : {}; Geno available : {}; Elapsed time: {}\n > Starting trimming reads... (can take several minutes)",
-                "trim": "   Trimming done! Elapsed time: {}\n > Starting collapsing reads... (can take several minutes)",
-		"collaps" : "   Collapsing done! Elapsed time: {}\n > Starting mapping reads....",
-                "mapping" : "   Mapping done! Elapsed time: {}\n > Starting post-processing....",
-                "postproc" : "   Post-process done! Elapsed time: {}",
+                "lib_prep": "   Library prepared! VCF available : {}; Geno available : {}; Elapsed time: {}s\n > Starting trimming reads... (can take several minutes)",
+                "trim": "   Trimming done! Elapsed time: {}s\n > Starting collapsing reads... (can take several minutes)",
+		"collaps" : "   Collapsing done! Elapsed time: {}s\n > Starting mapping reads....",
+                "mapping" : "   Mapping done! Elapsed time: {}s\n > Starting post-processing....",
+                "postproc" : "   Post-process done! Elapsed time: {}s",
                 "outputs" : "    - Generating outputs",
                 "ambiguous" : "    - Resolving ambigous alignments",
                 "alscore" : "    - Computing Alignment score",
@@ -491,3 +492,19 @@ def write_isomiR_dist(bam_dict, sample_name, dir_results):
         # write total
         l = "\t".join(["TOTAL", str(RUN_cano * 100. / RUN_total), str(RUN_i3_cano * 100. / RUN_total), str(RUN_i5_cano * 100. / RUN_total), str(RUN_i3_trim * 100. / RUN_total), str(RUN_i5_trim * 100. / RUN_total), str(RUN_i3_tail * 100. / RUN_total), str(RUN_i5_tail * 100. / RUN_total), str(RUN_i3_TE * 100. / RUN_total), str(RUN_i5_TE * 100. / RUN_total), str(RUN_i3_trimtail * 100. / RUN_total), str(RUN_i5_trimtail * 100. / RUN_total), str(RUN_total)]) + "\n"
         out.write(l)
+
+def sam_to_bam(tmpdir, sample, samtools):
+    subprocess.call("cat {}/{}.cl.fq >> {}/{}.failed.fq".format(tmpdir, sample, tmpdir, sample), shell=True)
+    subprocess.call("rm -f {}/{}.cl.fq".format(tmpdir, sample), shell=True)
+    subprocess.call("mv {}/{}.ok.sam {}/{}.sam".format(tmpdir, sample, tmpdir, sample), shell=True)
+    subprocess.call("{} view -bh {}/{}.sam -o {}/{}.bam".format(samtools, tmpdir, sample, tmpdir, sample), shell=True)
+    subprocess.call("rm -f {}/{}.al.sam".format(tmpdir, sample), shell=True)## aligned by bowtie2
+    subprocess.call("rm -f {}/{}.sam".format(tmpdir, sample), shell=True)## cleaned by filter_reads
+    # create bam
+    subprocess.call("{} sort {}/{}.bam -o {}/{}.s.bam".format(samtools, tmpdir, sample, tmpdir, sample), shell=True)
+    subprocess.call("rm -f {}/{}.bam".format(tmpdir, sample), shell=True)
+    subprocess.call("mv {}/{}.s.bam {}/{}.bam".format(tmpdir, sample, tmpdir, sample), shell=True)
+    subprocess.call("{} index {}/{}.bam".format(samtools, tmpdir, sample), shell=True)
+    # Gunzip failed fq
+    subprocess.call("gzip -f {}/{}.failed.fq".format(tmpdir, sample), shell=True)
+

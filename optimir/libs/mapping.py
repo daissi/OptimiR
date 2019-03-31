@@ -12,7 +12,7 @@ import sys, os, subprocess
 import optimir.libs.filter_reads as filter_reads
 from optimir.libs.essentials import *
 
-def mapping(tmpdir_mapping, fastq_in, SAMPLE_NAME, BOWTIE2, SEEDLEN, ref_library, OptimiR_path, SAMTOOLS):
+def mapping(tmpdir_mapping, fastq_in, SAMPLE_NAME, BOWTIE2, SEEDLEN, ref_library, SAMTOOLS):
     file_out_mapping = '{}/{}.al.sam'.format(tmpdir_mapping, SAMPLE_NAME)
     # Remove potential previous files
     subprocess.call("rm -f {}/{}*".format(tmpdir_mapping, SAMPLE_NAME), shell=True)
@@ -25,6 +25,4 @@ def mapping(tmpdir_mapping, fastq_in, SAMPLE_NAME, BOWTIE2, SEEDLEN, ref_library
     # Clean sam (clean reads with indels present in seed, bug bowtie2?)
     filter_reads.main(file_out_mapping, fastq_in, 0)
     # Use samtools to convert sam to bam, and gunzip failed fq
-    subprocess.call("{}/libs/sam_to_bam.sh {} {} {}".format(OptimiR_path, tmpdir_mapping, SAMPLE_NAME, SAMTOOLS), shell=True)
-    if ret_code != 0:
-        raise Except_OS_Pipe("Merging step: samtools failed. Make sure it's installed and its path properly configured in PImiR_config.py")
+    sam_to_bam(tmpdir_mapping, SAMPLE_NAME, SAMTOOLS)
